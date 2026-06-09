@@ -1,0 +1,6 @@
+__pycache__/
+*.pyc
+.env
+*.xlsx
+chrome_user_data/
+edge_user_data/
