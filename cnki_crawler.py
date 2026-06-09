@@ -6,7 +6,7 @@ CNKI 知网文献爬虫 - Selenium 版 (Edge)
 
 import sys, os, io, subprocess
 
-# ===== 自动创建 & 激活虚拟环境（完全便携） =====
+# ===== 自动创建 & 切换至虚拟环境（完全便携） =====
 _script_dir = os.path.dirname(os.path.abspath(__file__))
 _venv_dir = os.path.join(_script_dir, 'venv')
 _venv_python = os.path.join(_venv_dir, 'Scripts', 'python.exe')
@@ -15,13 +15,16 @@ if not os.path.isfile(_venv_python):
     print("[设置] 正在创建虚拟环境...")
     subprocess.check_call([sys.executable, "-m", "venv", _venv_dir])
     print("[设置] 虚拟环境已创建，正在安装依赖...")
-
-if sys.executable.lower() != _venv_python.lower():
     subprocess.check_call([_venv_python, "-m", "pip", "install", "--upgrade", "pip", "-q"])
     for _pkg in ['selenium', 'webdriver-manager', 'pandas', 'openpyxl', 'lxml']:
         subprocess.check_call([_venv_python, "-m", "pip", "install", _pkg, "-q"])
-    print("[设置] 依赖安装完成，启动程序...")
-    os.execv(_venv_python, [_venv_python] + sys.argv)
+    print("[设置] 依赖安装完成")
+
+# 用环境变量标记，防止无限重启（Windows 路径忽略大小写）
+if not os.environ.get('_CNKI_VENV_ACTIVATED'):
+    if os.path.isfile(_venv_python) and os.path.normcase(sys.executable) != os.path.normcase(_venv_python):
+        os.environ['_CNKI_VENV_ACTIVATED'] = '1'
+        os.execv(_venv_python, [_venv_python] + sys.argv)
 
 sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8', errors='replace')
 
@@ -213,9 +216,10 @@ def main():
     MAX_RESULTS = int(m) if m.isdigit() else 0
 
     # 启动浏览器
-    print("\n[启动] 正在打开 Edge 浏览器...")
+    print("\n[启动] 正在启动 Edge 浏览器（首次可能需要下载驱动，请稍候）...")
     try:
         driver = setup_driver()
+        print("[启动] 浏览器已打开")
     except Exception as e:
         print(f"[失败] 浏览器启动失败: {e}")
         return
