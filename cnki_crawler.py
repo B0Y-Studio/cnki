@@ -1,12 +1,24 @@
 #!/usr/bin/env python3
 """
 CNKI 知网文献爬虫 - Selenium 版 (Edge)
-使用方式：
-  1. 脚本打开浏览器 -> 你手动搜索 -> 按 Enter
-  2. 脚本自动翻页提取标题、作者、关键词、摘要、被引频次
+直接在终端运行 python cnki_crawler.py 即可
 """
 
-import sys, io
+import sys, os, io
+
+# ===== 自动定位虚拟环境 =====
+_script_dir = os.path.dirname(os.path.abspath(__file__))
+_venv_paths = [
+    os.path.join(_script_dir, 'venv'),
+    os.path.join(_script_dir, '.venv'),
+    'C:/Users/hecto/Desktop/CNKI-download/venv',
+]
+for _vp in _venv_paths:
+    _python = os.path.join(_vp, 'Scripts', 'python.exe')
+    if os.path.isfile(_python) and sys.executable.lower() != _python.lower():
+        os.execv(_python, [_python] + sys.argv)
+        break
+
 sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8', errors='replace')
 
 import subprocess
@@ -17,7 +29,7 @@ for pkg in ['selenium', 'webdriver-manager', 'pandas', 'openpyxl', 'lxml']:
         print(f"安装 {pkg}...")
         subprocess.check_call([sys.executable, "-m", "pip", "install", pkg, "-q"])
 
-import os, time, re, random, uuid, pandas as pd
+import time, re, random, uuid, pandas as pd
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
