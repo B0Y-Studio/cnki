@@ -4,30 +4,26 @@ CNKI 知网文献爬虫 - Selenium 版 (Edge)
 直接在终端运行 python cnki_crawler.py 即可
 """
 
-import sys, os, io
+import sys, os, io, subprocess
 
-# ===== 自动定位虚拟环境 =====
+# ===== 自动创建 & 激活虚拟环境（完全便携） =====
 _script_dir = os.path.dirname(os.path.abspath(__file__))
-_venv_paths = [
-    os.path.join(_script_dir, 'venv'),
-    os.path.join(_script_dir, '.venv'),
-    'C:/Users/hecto/Desktop/CNKI-download/venv',
-]
-for _vp in _venv_paths:
-    _python = os.path.join(_vp, 'Scripts', 'python.exe')
-    if os.path.isfile(_python) and sys.executable.lower() != _python.lower():
-        os.execv(_python, [_python] + sys.argv)
-        break
+_venv_dir = os.path.join(_script_dir, 'venv')
+_venv_python = os.path.join(_venv_dir, 'Scripts', 'python.exe')
+
+if not os.path.isfile(_venv_python):
+    print("[设置] 正在创建虚拟环境...")
+    subprocess.check_call([sys.executable, "-m", "venv", _venv_dir])
+    print("[设置] 虚拟环境已创建，正在安装依赖...")
+
+if sys.executable.lower() != _venv_python.lower():
+    subprocess.check_call([_venv_python, "-m", "pip", "install", "--upgrade", "pip", "-q"])
+    for _pkg in ['selenium', 'webdriver-manager', 'pandas', 'openpyxl', 'lxml']:
+        subprocess.check_call([_venv_python, "-m", "pip", "install", _pkg, "-q"])
+    print("[设置] 依赖安装完成，启动程序...")
+    os.execv(_venv_python, [_venv_python] + sys.argv)
 
 sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8', errors='replace')
-
-import subprocess
-for pkg in ['selenium', 'webdriver-manager', 'pandas', 'openpyxl', 'lxml']:
-    try:
-        __import__(pkg.replace('-', '_'))
-    except ImportError:
-        print(f"安装 {pkg}...")
-        subprocess.check_call([sys.executable, "-m", "pip", "install", pkg, "-q"])
 
 import time, re, random, uuid, pandas as pd
 from selenium import webdriver
